@@ -1,3 +1,4 @@
+import { ShiftsGateway } from './shifts.gateway';
 import { UserEntity } from './../users/users.entity';
 import { ShiftsEntity } from './shifts.entity';
 import { Injectable } from '@nestjs/common';
@@ -13,90 +14,89 @@ export class ShiftsService {
         @InjectRepository(ShiftsEntity)
         public repo: Repository<ShiftsEntity>,
         @InjectRepository(UserEntity)
-    private userRepo: Repository<UserEntity>,
+        private userRepo: Repository<UserEntity>,
+        private shiftsGateway: ShiftsGateway
 
     ) {
     }
 
-    async getShift    (id) {
-        const data = await this.repo.findOne({id});
+    async getShift(id) {
+        const data = await this.repo.findOne({ id });
         return data;
     }
 
-    async getAllShift    () {
+    async getAllShift() {
         const data = await this.repo.find();
         return data;
     }
 
-    async getLastShiftByUserID    (user_id) {
-        const data = await this.repo.findOne({user_id},{
-            order: {id: 'DESC'}
+    async getLastShiftByUserID(user_id) {
+        const data = await this.repo.findOne({ user_id }, {
+            order: { id: 'DESC' }
         });
         return data;
     }
 
-    async enter (user_id) {
+    async enter(user_id) {
 
-        const user = await this.userRepo.findOne({user_id});
+        const user = await this.userRepo.findOne({ user_id });
 
-        if(!user){
+        if (!user) {
             return {
-                err:"User doesn't exist"
+                err: "User doesn't exist"
             }
         }
         const lastShift = await this.getLastShiftByUserID(user_id);
-        
-        console.log(lastShift);
-        
-        if(!lastShift || lastShift?.exit){
+
+
+        if (!lastShift || lastShift?.exit) {
             const data = {
                 user_id,
                 enter: new Date().toISOString(),
-                exit:""
+                exit: ""
             }
-    
-    
-             return await this.repo.save(data)
-        }else {
+
+
+            await this.repo.save(data)
+            this.shiftsGateway.completeUpdate();
+            return data;
+        } else {
             return {
-                err:"invalid id"
+                err: "invalid id"
             }
         }
 
 
 
-      
+
 
     }
 
-    async exit (user_id) {
+    async exit(user_id) {
 
         const lastShift = await this.getLastShiftByUserID(user_id);
-        
-        
-        if(lastShift && !lastShift?.exit){
-            // const data = {
-            //    ...lastShift,
-            //    exit: new Date().toISOString(),
 
-            // }
-            lastShift.exit= new Date();
-    
-            // console.log(data);
+
+        if (lastShift && !lastShift?.exit) {
+         
+            lastShift.exit = new Date();
+
+
             await this.repo.save(lastShift)
-            
-             return lastShift;
-        }else {
+            this.shiftsGateway.completeUpdate();
+
+            return lastShift;
+        } else {
             return {
-                err:"invalid id"
+                err: "invalid id"
             }
         }
 
 
 
-      
+
 
     }
 
-     
+
 }
