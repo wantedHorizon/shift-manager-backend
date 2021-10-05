@@ -8,22 +8,22 @@ import { ShiftsModule } from './shifts/shifts.module';
 
 @Module({
   imports: [
-    // TimeLogsModule,
+    TimeLogsModule,
 
-    // TypeOrmModule.forRoot({
-    //   type: 'mysql',
-    //   host: 'localhost',
-    //   port: 3306,
-    //   username: 'root',
-    //   // password: '',
-    //   database: 'test2',
-    //   autoLoadEntities: true,
-    //   synchronize: true,
-    // }),
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DATABASE_HOST||'localhost',
+      // port: 3306,
+      username: process.env.DATABASE_USER||"root",
+      password: process.env.DATABASE_PASSWORD||'',
+      database: process.env.DATABASE_DB_NAME ||"test2",
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
 
-    // UsersModule,
+    UsersModule,
 
-    // ShiftsModule,
+    ShiftsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
